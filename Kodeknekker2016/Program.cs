@@ -219,12 +219,12 @@ namespace Kodeknekker2016
             return totGroups; // Return the total number of groups encountered
         }
 
-        // Car at lower indexes are before the later ones
+        // Cars at lower indexes are before the later ones
         static int NumGroups(int[] speeds)
         {
             bool log = false;
 
-            // Loop throug every car and slow down those behind
+            // Loop through every car and slow down those behind
             for (int c = 0; c < speeds.Length; c++)
             {
                 int speed = speeds[c]; // Speed of this car (c)
