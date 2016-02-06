@@ -57,9 +57,11 @@ namespace Kodeknekker2016
             for (int i = 0; i < 10000; i++) // Loop through all the numbers
             {
                 int num7, num13;
-                SplitNumber(i, out num7, out num13);
-                if (num7 == -1)
-                    Console.WriteLine("{0}: {1}*7 + {2}*13", i, num7, num13);
+                SplitNumber(i, out num7, out num13); // Split the number into 7s and 13s
+                if (num7 == -1) // Only print the numbers we didn't find a solution for
+                    Console.WriteLine("No solution for {0}", i);
+                //else
+                //    Console.WriteLine("{0}: {1}*7 + {2}*13", i, num7, num13);
             }
         }
 
@@ -99,22 +101,22 @@ namespace Kodeknekker2016
 
         static void CountClockSegments()
         {
-            Dictionary<int, int> segs = new Dictionary<int, int>();
+            Dictionary<int, int> segs = new Dictionary<int, int>(); // Dictionary indexed by segment and storing how many seconds it is on during one day
             for (int i = 1; i <= 28; i++)
-                segs.Add(i, 0);
+                segs.Add(i, 0); // Add initial value of 0 to every segment
 
             int digit;
             bool[] on;
-            for (int h = 0; h < 24; h++)
+            for (int h = 0; h < 24; h++) // Hour goes from 0 to 23
             {
-                for (int m = 0; m < 60; m++)
+                for (int m = 0; m < 60; m++) // Minute from 0 to 59
                 {
                     // Hours
-                    if (h / 10 > 0) // Two digits
+                    digit = h / 10; // First digit (23 -> 2,    17 -> 1,     09 -> 0)
+                    if (digit > 0) // Two digits in hour. Rules said that the first digit is never 0, so only count when its > 0
                     {
-                        digit = h / 10;
-                        on = segments[digit];
-                        if (on[0]) segs[1]++;
+                        on = segments[digit]; // The segments that are on for this digit
+                        if (on[0]) segs[1]++; // Increase the value for the corresponding segment
                         if (on[1]) segs[2]++;
                         if (on[2]) segs[3]++;
                         if (on[3]) segs[4]++;
@@ -123,19 +125,19 @@ namespace Kodeknekker2016
                         if (on[6]) segs[7]++;
                     }
 
-                    digit = h % 10;
+                    digit = h % 10; // Get the last digit in the hour (23 -> 3, 17 -> 7, 09 -> 9)
                     on = segments[digit];
                     if (on[0]) segs[8]++;
                     if (on[1]) segs[9]++;
                     if (on[2]) segs[10]++;
                     if (on[3]) segs[11]++;
                     if (on[4]) segs[12]++;
-                    if (on[5]) segs[14]++; // Oppgaven er fåkt
+                    if (on[5]) segs[14]++; // Oppgaven er fåkt, bytta om på rekkefølgen -.-
                     if (on[6]) segs[13]++;
 
                     // Minutes
 
-                    digit = m / 10;
+                    digit = m / 10; // Gets the first digit of the minute
                     on = segments[digit];
                     if (on[0]) segs[15]++;
                     if (on[1]) segs[16]++;
@@ -145,7 +147,7 @@ namespace Kodeknekker2016
                     if (on[5]) segs[20]++;
                     if (on[6]) segs[21]++;
 
-                    digit = m % 10;
+                    digit = m % 10; // Last digit of the minute
                     on = segments[digit];
                     if (on[0]) segs[22]++;
                     if (on[1]) segs[23]++;
@@ -157,70 +159,75 @@ namespace Kodeknekker2016
                 }
             }
 
-            PrintDict(segs);
+            PrintDict(segs); // Print the dictionary to output
         }
 
         static void CarProbabilities()
         {
-            // Key is group, value is number of times there was key groups
+            // Dictionary indexed by the size of the group (1-5), and returns the number of times this size occurs
             Dictionary<int, int> groups = new Dictionary<int, int>();
             for (int i = 1; i <= 5; i++)
-                groups.Add(i, 0);
+                groups.Add(i, 0); // Adding initial values of 0
 
-            int[] initialOrder = new int[] { 1, 2, 3, 4, 5 };
-            foreach (IEnumerable<int> order in Permutate(initialOrder))
+            int[] initialOrder = new int[] { 1, 2, 3, 4, 5 }; // Initial array of speeds - 1 unit/time, 2 units/time, etc.. 
+                                                              // Index 0 is in the front of the queue, index 4 is the last car
+            foreach (IEnumerable<int> order in Permutate(initialOrder)) // Permutate every possible combination of the initial order
             {
                 int[] speeds = order.ToArray();
-                int numg = NumGroups(speeds);
-                groups[numg]++;
+                int numg = NumGroups(speeds);   // Check how many groups this particular order ended up in
+                groups[numg]++;                 // Increase the counter for that group size
             }
-            PrintDict(groups);
+            PrintDict(groups); // Print the results
         }
 
-        static void CarStats(int ntimes, long rounds)
+        static void CarStats(int ntimes, long nrounds)
         {
-            long groupSum = 0;
-            long numberRounds = (long)ntimes * (long)rounds;
+            // Do a simulation
 
+            long groupSum = 0; // Total sum of all the group sizes
+            long numberRounds = (long)ntimes * (long)nrounds; // Total number of rounds
+
+            // Do it in parallel for faster results  (outer loop runs 'ntimes' times, inner loop runs 'nrounds' times
             Parallel.For(0, ntimes, (int n) =>
             {
-                long result = TotalGroups(rounds);
-                Interlocked.Add(ref groupSum, result);
+                long result = TotalGroups(nrounds);    // Run a simulation with 'nrounds' rounds and count the total sum of group sizes over all the rounds
+                Interlocked.Add(ref groupSum, result); // Add it to the overall total (but in a thread-safe manner)
             });
 
-            Console.WriteLine("Average is: {0:0.0000}", (double)groupSum / (double)numberRounds);
+            Console.WriteLine("Average is: {0:0.0000}", (double)groupSum / (double)numberRounds); // Average group size per round
         }
 
         static long TotalGroups(long rounds)
         {
             Random r;
-            lock (sr)
-             r = new Random(sr.Next());
+            lock (sr)   // Random isn't thread-safe, so we have to get our own instance for each thread
+                r = new Random(sr.Next());
 
-            long totGroups = 0;
+            long totGroups = 0; // Sum of group sizes
 
-            int[] originalSpeed = new[] { 1, 2, 3, 4, 5 };
-            int[][] permutations = Permutate(originalSpeed).Select(e => e.ToArray()).ToArray();
+            int[] originalSpeed = new[] { 1, 2, 3, 4, 5 };  // Initial ordering
+            int[][] permutations = Permutate(originalSpeed).Select(e => e.ToArray()).ToArray(); // Permutations of the ordering, 
+                                                                                                // but just converted to arrays instead of enumerables
 
             for (long i = 0; i < rounds; i++)
             {
-                int idex = r.Next(0, permutations.Length);
-                int groups = NumGroups(permutations[idex]);
-                totGroups += groups;
+                int idex = r.Next(0, permutations.Length);   // Pick a random index from the array
+                int groups = NumGroups(permutations[idex]);  // Count the number of groups of that particular permutation
+                totGroups += groups;                         // Add it to the result
             }
 
-            return totGroups;
+            return totGroups; // Return the total number of groups encountered
         }
 
         // Car at lower indexes are before the later ones
         static int NumGroups(int[] speeds)
         {
             bool log = false;
-            // Loop throug every car and slow down those behind
 
+            // Loop throug every car and slow down those behind
             for (int c = 0; c < speeds.Length; c++)
             {
-                int speed = speeds[c]; // Speed of this car
+                int speed = speeds[c]; // Speed of this car (c)
                 for (int w = c + 1; w < speeds.Length; w++) // Loop through every car after c
                 {
                     int otherSpeed = speeds[w];
@@ -231,30 +238,32 @@ namespace Kodeknekker2016
                 }
             }
 
-            string fmt = "";
-            int numg = 1;
-            for (int car = 0; car < speeds.Length - 1; car++)
+            // All cars driving at correct speed now, count the number of groups
+            int numg = 1; // We always have at least one group
+            string fmt = ""; // String for logging output if enabled
+
+            for (int car = 0; car < speeds.Length - 1; car++) // Loop though all the cars again
             {
-                string carName = "Car" + (car + 1).ToString();
+                string carName = "Car" + (car + 1).ToString(); // Logging
                 string othernm = "Car" + (car + 2).ToString();
 
                 if (speeds[car] > speeds[car + 1]) // This car is faster than the one in front, thus creating a group
                 {
-                    numg++;
-                    fmt += carName + " <- ";
+                    numg++; // Increase the group count
+                    fmt += carName + " <- "; // Logging
                 }
                 else // This is in the same group as the one behind
                 {
-                    fmt += carName + "----";
+                    fmt += carName + "----"; // Logging
                 }
-                if (car == speeds.Length - 2)
+                if (car == speeds.Length - 2) // Logging
                     fmt += othernm;
             }
 
             if (log)
                 Console.WriteLine("{0} groups: {1}", numg, fmt);
 
-            return numg;
+            return numg; // Return the number of groups for this particular order
         }
 
         static void PrintDict<T, V>(Dictionary<T, V> dict)
@@ -264,22 +273,7 @@ namespace Kodeknekker2016
                 Console.WriteLine("{0}: {1}", c, dict[c]);
             }
         }
-
-        static void MergeInto<T>(Dictionary<T, int> into, Dictionary<T, int> from)
-        {
-            foreach (KeyValuePair<T, int> pair in from)
-            {
-                if (into.ContainsKey(pair.Key))
-                {
-                    into[pair.Key] += pair.Value;
-                }
-                else
-                {
-                    into.Add(pair.Key, pair.Value);
-                }
-            }
-        }
-
+        
         static IEnumerable<IEnumerable<T>> Permutate<T>(IEnumerable<T> values)
         {
             if (values.Count() == 1)
