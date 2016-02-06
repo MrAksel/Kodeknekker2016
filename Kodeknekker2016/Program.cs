@@ -12,17 +12,19 @@ namespace Kodeknekker2016
         static Random sr = new Random();
         static string pi1000 = "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989";
         static bool[][] segments = new bool[][]
-        {
+        {   //  Array telling which segments are on for each digit
+            //  Top - top left - top right - middle - bottom left - bottom right - bottom
+            //  Same order as first digit in the task
             new [] {true, true, true, false, true, true, true, true}, // 0
             new [] {false, false, true, false, false, true, false },  // 1
             new [] {true, false, true, true, true, false, true },     // 2
-            new [] {true, false, true, true, false, true, true },
-            new [] {false, true, true, true, false, true, false },
-            new [] {true, true, false, true, false ,true, true },
-            new [] {true, true, false, true, true, true, true},
-            new [] {true, false, true, false, false, true, false },
-            new [] {true, true, true, true, true, true, true },
-            new [] {true, true, true, true, false, true, true }
+            new [] {true, false, true, true, false, true, true },     // 3
+            new [] {false, true, true, true, false, true, false },    // 4
+            new [] {true, true, false, true, false ,true, true },     // 5
+            new [] {true, true, false, true, true, true, true},       // 6
+            new [] {true, false, true, false, false, true, false },   // 7
+            new [] {true, true, true, true, true, true, true },       // 8
+            new [] {true, true, true, true, false, true, true }       // 9
         };
 
         static void Main(string[] args)
@@ -52,7 +54,7 @@ namespace Kodeknekker2016
 
         private static void SevenAndThirteen()
         {
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 10000; i++) // Loop through all the numbers
             {
                 int num7, num13;
                 SplitNumber(i, out num7, out num13);
@@ -63,33 +65,33 @@ namespace Kodeknekker2016
 
         private static void SplitNumber(int i, out int num7, out int num13)
         {
-            int max7 = i / 7 + 1;
-            int max13 = i / 13 + 1;
-            for (num7 = 0; num7 < max7; num7++)
+            int max7 = i / 7 + 1; //    7 * max7  > i
+            int max13 = i / 13 + 1; // 13 * max13 > i
+            for (num7 = 0; num7 < max7; num7++) // Start with 0*7 and go upwards
             {
-                int rest = i - num7 * 7;
+                int rest = i - num7 * 7; // Remove all the 7's
                 int div13 = rest / 13;
-                int rest13 = rest % 13;
+                int rest13 = rest % 13;  // Check if it is divisable by 13
 
-                if (rest13 == 0)
+                if (rest13 == 0) // We found a pair that matched 
                 {
                     num13 = div13;
                     return;
                 }
             }
             num7 = -1;
-            num13 = -1;
+            num13 = -1; // No matching numbers, return -1
         }
 
         static void Pi1000Count()
         {
             Dictionary<char, int> table = new Dictionary<char, int>();
-            foreach (char c in pi1000)
+            foreach (char c in pi1000) // Loop through every character
             {
-                if (!table.ContainsKey(c))
+                if (!table.ContainsKey(c)) // Add it to the dict if it's the first the time we saw it
                     table.Add(c, 1);
                 else
-                    table[c]++;
+                    table[c]++; // Increment the count for this character
             }
 
             PrintDict(table);
