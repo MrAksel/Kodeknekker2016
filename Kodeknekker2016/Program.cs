@@ -41,12 +41,12 @@ namespace Kodeknekker2016
             CarProbabilities();
 
             Console.WriteLine("\nCars stats:"); Console.ReadLine();
-            int rounds = 100;
+            int rounds = 1024;
             while (true)
             {
-                Console.ReadLine();
                 CarStats(16, rounds);
-                rounds *= 10;
+                rounds *= 2;
+                Console.ReadLine();
             }
 
             Console.WriteLine("\nFinished"); Console.ReadLine();
@@ -57,15 +57,15 @@ namespace Kodeknekker2016
             for (int i = 0; i < 10000; i++) // Loop through all the numbers
             {
                 int num7, num13;
-                SplitNumber(i, out num7, out num13); // Split the number into 7s and 13s
-                if (num7 == -1) // Only print the numbers we didn't find a solution for
+                bool success = SplitNumber(i, out num7, out num13); // Split the number into 7s and 13s
+                if (!success) // Only print the numbers we didn't find a solution for
                     Console.WriteLine("No solution for {0}", i);
                 //else
                 //    Console.WriteLine("{0}: {1}*7 + {2}*13", i, num7, num13);
             }
         }
 
-        private static void SplitNumber(int i, out int num7, out int num13)
+        private static bool SplitNumber(int i, out int num7, out int num13)
         {
             int max7 = i / 7 + 1; //    7 * max7  > i
             int max13 = i / 13 + 1; // 13 * max13 > i
@@ -78,11 +78,12 @@ namespace Kodeknekker2016
                 if (rest13 == 0) // We found a pair that matched 
                 {
                     num13 = div13;
-                    return;
+                    return true;
                 }
             }
             num7 = -1;
             num13 = -1; // No matching numbers, return -1
+            return false;
         }
 
         static void Pi1000Count()
@@ -273,7 +274,7 @@ namespace Kodeknekker2016
                 Console.WriteLine("{0}: {1}", c, dict[c]);
             }
         }
-        
+
         static IEnumerable<IEnumerable<T>> Permutate<T>(IEnumerable<T> values)
         {
             if (values.Count() == 1)
